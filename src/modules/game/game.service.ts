@@ -104,7 +104,7 @@ export class GameService {
     if (
       fieldSituation?.ownerId &&
       fieldSituation?.ownerId !== null &&
-      fieldSituation?.ownerId !== userId
+      fieldSituation?.ownerId.toString() !== userId.toString()
     ) {
       return 'payRent';
     }

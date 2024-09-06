@@ -1,5 +1,5 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import mongoose, { HydratedDocument, Schema as MomgooseSchema } from 'mongoose';
+import mongoose, { HydratedDocument } from 'mongoose';
 
 export type GameSchema = HydratedDocument<Game>;
 
@@ -29,6 +29,9 @@ export class Game {
 
   @Prop()
   currentMove: mongoose.Types.ObjectId;
+
+  @Prop({ required: true })
+  creator: mongoose.Types.ObjectId;
 
   @Prop()
   action: string;

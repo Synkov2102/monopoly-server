@@ -18,8 +18,9 @@ export class ServiceService {
   }
 
   // Создать игру
-  async createGame() {
+  async createGame(userId: mongoose.Types.ObjectId) {
     const createdGame = new this.gameModel();
+    createdGame.creator = userId;
     return createdGame.save();
   }
 
@@ -47,6 +48,14 @@ export class ServiceService {
       { _id: gameId },
       { $set: { players: game.players } },
     );
+  }
+
+  // Добавление игрока в игру
+  async deleteGame(
+    userId: mongoose.Types.ObjectId,
+    gameId: mongoose.Types.ObjectId,
+  ) {
+    return this.gameModel.deleteOne({ _id: gameId, creator: userId });
   }
 
   // Запуск игры

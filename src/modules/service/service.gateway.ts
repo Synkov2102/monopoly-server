@@ -28,7 +28,7 @@ export class ServiceGateway
     setInterval(async () => {
       const games = await this.serviceService.getGames();
       this.server.emit('games', games);
-    }, 3000); // 3 секунды
+    }, 1000); // 1 секунда Костыль пока нет кластера MongoDB
   }
 
   handleConnection(client: Socket) {
@@ -73,8 +73,28 @@ export class ServiceGateway
   }
 
   @SubscribeMessage('createGame')
-  handleCreateGame() {
-    console.log('createGame');
-    return this.serviceService.createGame();
+  async handleCreateGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: string },
+  ) {
+    const userObjectId = new mongoose.Types.ObjectId(data.userId);
+    let game = await this.serviceService.createGame(userObjectId);
+
+    game = await this.serviceService.joinGame(userObjectId, game._id);
+
+    client.join(game._id.toString());
+    client.emit('joinedGame', game._id.toString());
+  }
+
+  @SubscribeMessage('deleteGame')
+  async handleDeleteGame(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() data: { userId: string; gameId: string },
+  ) {
+    const userObjectId = new mongoose.Types.ObjectId(data.userId);
+    const gameObjectId = new mongoose.Types.ObjectId(data.gameId);
+
+    await this.serviceService.deleteGame(userObjectId, gameObjectId);
+    client.to('gameId').disconnectSockets(true);
   }
 }
