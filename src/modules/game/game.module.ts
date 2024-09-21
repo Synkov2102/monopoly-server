@@ -4,6 +4,8 @@ import { Game, GameSchema } from '../service/schemas/game.chema';
 import { GameService } from './game.service';
 import { GameGateway } from './game.gateway';
 import { Field, FieldSchema } from '../service/schemas/field.chema';
+import { ActionsService } from './actions.service';
+import { ChanceService } from './chance.service';
 
 @Module({
   imports: [
@@ -13,6 +15,6 @@ import { Field, FieldSchema } from '../service/schemas/field.chema';
     ]),
   ],
   controllers: [],
-  providers: [GameGateway, GameService],
+  providers: [GameGateway, GameService, ActionsService, ChanceService],
 })
 export class GameModule {}

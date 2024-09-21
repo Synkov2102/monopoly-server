@@ -8,10 +8,15 @@ import { ServiceModule } from './modules/service/service.module';
 import { GameModule } from './modules/game/game.module';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true,
-  }), MongooseModule.forRoot(process.env.DATABASE_HOST), ServiceModule, GameModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+    }),
+    MongooseModule.forRoot(process.env.DATABASE_HOST),
+    ServiceModule,
+    GameModule,
+  ],
   controllers: [AppController],
   providers: [AppService, AppGateway],
 })
-export class AppModule { }
+export class AppModule {}

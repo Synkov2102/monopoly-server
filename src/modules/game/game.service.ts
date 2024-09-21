@@ -1,49 +1,22 @@
 import { BadGatewayException, Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import mongoose, { Model } from 'mongoose';
-import { Game, GameSchema } from '../service/schemas/game.chema';
+import { Game } from '../service/schemas/game.chema';
 import { Field } from '../service/schemas/field.chema';
-import payToPlayer from 'src/utils/payToPlayer-util';
-import payToGame from 'src/utils/payToGame-util';
-
-type TDices = [number, number];
+import payToPlayer from 'src/utils/pay-to-player.util';
+import payToGame from 'src/utils/pay-to-game.util';
+import { ActionsService } from './actions.service';
+import getDices from 'src/utils/get-dices.util';
+import getNewPosition from 'src/utils/get-new-position.util';
+import goToNextMove from 'src/utils/go-to-next-move.util';
 
 @Injectable()
 export class GameService {
   constructor(
     @InjectModel(Game.name) private gameModel: Model<Game>,
     @InjectModel(Field.name) private fieldModel: Model<Field>,
+    private readonly actionsService: ActionsService,
   ) {}
-
-  // Генерация значений кубиков
-  getDices(): TDices {
-    const getRandomInt = (max: number): number => {
-      return Math.floor(Math.random() * max) + 1;
-    };
-    return [getRandomInt(6), getRandomInt(6)];
-  }
-
-  // Расчет позиции игрока
-  getNewPosition(oldPosition: number, dices: TDices) {
-    let newPosition = oldPosition + dices[0] + dices[1];
-    if (newPosition > 39) {
-      newPosition = newPosition - 39;
-    }
-    return newPosition;
-  }
-
-  // Расчет того кто ходит следующим
-  goToNextMove(gameData: GameSchema) {
-    const newGameData = JSON.parse(JSON.stringify(gameData));
-    const currentMoveIndex = newGameData.players.findIndex(
-      (player) => player._id === newGameData.currentMove,
-    );
-    let nextMovePlayerIndex = currentMoveIndex + 1;
-    if (nextMovePlayerIndex === newGameData.players.length) {
-      nextMovePlayerIndex = 0;
-    }
-    return newGameData.players[nextMovePlayerIndex]._id;
-  }
 
   // Действие игрока - бросок кубиков
   async rollDices(
@@ -55,8 +28,8 @@ export class GameService {
     const userPosition = gameData.players.find(
       (player) => player._id.toString() === userId.toString(),
     ).currentPosition;
-    const dices = this.getDices();
-    const newPosition = this.getNewPosition(userPosition, dices);
+    const dices = getDices();
+    const newPosition = getNewPosition(userPosition, dices);
 
     // Применяем изменения к конкретному пользователю
     const editedIndex = gameData.players.findIndex(
@@ -64,7 +37,11 @@ export class GameService {
     );
     gameData.players[editedIndex].currentPosition = newPosition;
     const players = gameData.players;
-    const action = await this.checkNewPosition(userId, gameId, newPosition);
+    const action = await this.actionsService.checkNewPosition(
+      userId,
+      gameId,
+      newPosition,
+    );
 
     if (action === 'nextPlayerRoll') {
       return this.gameModel.findOneAndUpdate(
@@ -73,7 +50,7 @@ export class GameService {
           $set: {
             players: gameData.players,
             action: 'rollDices',
-            currentMove: this.goToNextMove(gameData),
+            currentMove: goToNextMove(gameData),
           },
         },
         { new: true },
@@ -85,31 +62,6 @@ export class GameService {
       { $set: { players, action } },
       { new: true },
     );
-  }
-
-  async checkNewPosition(
-    userId: mongoose.Types.ObjectId,
-    gameId: mongoose.Types.ObjectId,
-    position: number,
-  ) {
-    const gameData = await this.gameModel.findOne({ _id: gameId });
-    const fieldSituation = gameData.fields.find(
-      (field) => field.position === position,
-    );
-    console.log(fieldSituation);
-    if (fieldSituation?.ownerId === null) {
-      return 'buyField';
-    }
-
-    if (
-      fieldSituation?.ownerId &&
-      fieldSituation?.ownerId !== null &&
-      fieldSituation?.ownerId.toString() !== userId.toString()
-    ) {
-      return 'payRent';
-    }
-
-    return 'nextPlayerRoll'; // Временное решение что-бы не стопить ходы
   }
 
   async payRent(
@@ -142,7 +94,7 @@ export class GameService {
         $set: {
           players: gameData.players,
           action: 'rollDices',
-          currentMove: this.goToNextMove(gameData),
+          currentMove: goToNextMove(gameData),
         },
       },
       { new: true },
@@ -192,7 +144,7 @@ export class GameService {
         $set: {
           players: gameData.players,
           fields: gameData.fields,
-          currentMove: this.goToNextMove(gameData),
+          currentMove: goToNextMove(gameData),
           action: 'rollDices',
         },
       },
@@ -218,7 +170,7 @@ export class GameService {
       { _id: gameId },
       {
         $set: {
-          currentMove: this.goToNextMove(gameData),
+          currentMove: goToNextMove(gameData),
           action: 'rollDices',
         },
       },
@@ -243,6 +195,7 @@ export class GameService {
   }
 
   async getFieldsData(gameId: mongoose.Types.ObjectId) {
+    console.log(gameId);
     return this.fieldModel.find({});
   }
 }

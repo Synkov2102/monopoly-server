@@ -1,7 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
 
-export type GameSchema = HydratedDocument<Game>;
+export type GameDocument = HydratedDocument<Game>;
 
 interface IField {
   position: number;

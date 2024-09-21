@@ -7,6 +7,7 @@ import {
 import mongoose from 'mongoose';
 import { Server } from 'socket.io';
 import { GameService } from './game.service';
+import { ChanceService } from './chance.service';
 
 @WebSocketGateway({
   cors: {
@@ -15,7 +16,10 @@ import { GameService } from './game.service';
 })
 export class GameGateway {
   @WebSocketServer() server: Server;
-  constructor(private readonly gameService: GameService) {}
+  constructor(
+    private readonly gameService: GameService,
+    private readonly chanceService: ChanceService,
+  ) {}
 
   @SubscribeMessage('rollDices')
   async handleRollDices(
@@ -91,6 +95,17 @@ export class GameGateway {
     const gameObjectId = new mongoose.Types.ObjectId(data.gameId);
 
     const res = await this.gameService.skipMove(userObjectId, gameObjectId);
+
+    this.server.to(data.gameId).emit('changeGameData', res);
+    return res;
+  }
+
+  @SubscribeMessage('chance')
+  async handleChance(@MessageBody() data: { userId: string; gameId: string }) {
+    const userObjectId = new mongoose.Types.ObjectId(data.userId);
+    const gameObjectId = new mongoose.Types.ObjectId(data.gameId);
+
+    const res = await this.chanceService.getChance(userObjectId, gameObjectId);
 
     this.server.to(data.gameId).emit('changeGameData', res);
     return res;

@@ -1,36 +1,39 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 
-export type FieldSchema = HydratedDocument<Field>;
+export type FieldDocument = HydratedDocument<Field>;
 
 @Schema({ versionKey: false })
 export class Field {
   @Prop({ required: true })
   name: string;
 
-  @Prop({ required: true })
+  @Prop()
   printedPrice: number;
 
-  @Prop({ required: true })
+  @Prop()
   mortagePrice: number;
 
-  @Prop({ required: true })
+  @Prop()
   buildingCosts: number;
 
-  @Prop({ required: true })
+  @Prop()
   rent: number;
 
-  @Prop({ required: true })
+  @Prop()
   monopolyRent: number;
 
-  @Prop({ required: true })
+  @Prop()
   upgradeRent: [number, number, number, number, number];
 
   @Prop({ required: true })
   position: number;
 
-  @Prop({ required: true })
+  @Prop()
   monopolyId: number;
+
+  @Prop({ required: true })
+  type: string;
 }
 
 export const FieldSchema = SchemaFactory.createForClass(Field);

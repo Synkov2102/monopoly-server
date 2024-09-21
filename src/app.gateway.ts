@@ -5,4 +5,4 @@ import { WebSocketGateway } from '@nestjs/websockets';
     origin: '*',
   },
 })
-export class AppGateway { }
+export class AppGateway {}
