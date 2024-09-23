@@ -1,6 +1,6 @@
 import { BadGatewayException, NotFoundException } from '@nestjs/common';
 import mongoose from 'mongoose';
-import { IPlayer } from 'src/modules/service/schemas/game.chema';
+import { IPlayer } from 'src/types/types';
 
 export default function payToPlayer(
   players: IPlayer[],

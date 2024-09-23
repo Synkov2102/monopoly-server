@@ -1,23 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { HydratedDocument } from 'mongoose';
+import { IField, IPlayer } from 'src/types/types';
 
 export type GameDocument = HydratedDocument<Game>;
-
-interface IField {
-  position: number;
-  monopolyId: number;
-  monopolied: boolean;
-  level: number;
-  ownerId: mongoose.Types.ObjectId | null;
-  mortage: boolean;
-}
-
-export interface IPlayer {
-  _id: mongoose.Types.ObjectId;
-  color: string;
-  currentPosition: number;
-  money: number;
-}
 
 @Schema({ versionKey: false })
 export class Game {

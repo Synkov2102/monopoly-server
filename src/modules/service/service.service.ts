@@ -75,6 +75,7 @@ export class ServiceService {
     game.fields = fields.map((field) => ({
       position: field.position,
       monopolyId: field.monopolyId,
+      renderedValue: `${field.printedPrice} $`,
       level: 0,
       ownerId: null,
       monopolied: false,

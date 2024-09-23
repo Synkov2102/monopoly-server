@@ -9,6 +9,8 @@ import { ActionsService } from './actions.service';
 import getDices from 'src/utils/get-dices.util';
 import getNewPosition from 'src/utils/get-new-position.util';
 import goToNextMove from 'src/utils/go-to-next-move.util';
+import checkFieldsCount from 'src/utils/check-fields-count.util';
+import calculateRent from 'src/utils/calculate-rent.util';
 
 @Injectable()
 export class GameService {
@@ -79,13 +81,7 @@ export class GameService {
       throw new BadGatewayException('У поля нет владельца');
     }
 
-    let rent = fieldRules.rent;
-    if (fieldSituation.level === 0 && fieldSituation.monopolied) {
-      rent = fieldRules.monopolyRent;
-    }
-    if (fieldSituation.level > 0 && fieldSituation.monopolied) {
-      rent = fieldRules.upgradeRent[fieldSituation.level - 1];
-    }
+    const rent = calculateRent(fieldSituation, fieldRules);
     payToPlayer(gameData.players, userId, fieldSituation.ownerId, rent);
 
     return this.gameModel.findOneAndUpdate(
@@ -118,25 +114,10 @@ export class GameService {
 
     payToGame(gameData.players, userId, fieldRules.printedPrice);
 
-    const monopolyFields = [];
-
-    gameData.fields.forEach((field, index) => {
-      if (field.monopolyId === currentField.monopolyId) {
-        monopolyFields.push(gameData.fields[index]);
-      }
-    });
-
     currentField.ownerId = userId;
+    currentField.renderedValue = `${fieldRules.rent} $`;
 
-    if (
-      monopolyFields.every(
-        (field) => field.ownerId?.toString() === userId?.toString(),
-      )
-    ) {
-      monopolyFields.forEach((field) => {
-        field.monopolied = true;
-      });
-    }
+    checkFieldsCount(fieldRules, gameData, currentField, userId);
 
     return this.gameModel.findOneAndUpdate(
       { _id: gameId },

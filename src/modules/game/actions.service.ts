@@ -29,7 +29,7 @@ export class ActionsService {
 
     if (
       fieldRules?.type &&
-      fieldRules.type === 'company' &&
+      (fieldRules.type === 'company' || fieldRules.type === 'railroad') &&
       fieldSituation?.ownerId === null
     ) {
       return 'buyField';
@@ -53,9 +53,6 @@ export class ActionsService {
     mode: 'const' | 'calculate' = 'const',
   ) {
     const gameData = await this.gameModel.findOne({ _id: gameId });
-    // Ищем пользователя кидаем кубики и считаем позицию
-
-    // Применяем изменения к конкретному пользователю
     const editedIndex = gameData.players.findIndex(
       (player) => player._id.toString() === userId.toString(),
     );
